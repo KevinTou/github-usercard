@@ -3,16 +3,23 @@
            https://api.github.com/users/<your name>
 */
 const cardContainer = document.querySelector(".cards");
+(function getCardsFromUser(user) {
+  axios
+    .get(`https://api.github.com/users/${user}`)
+    .then(res => {
+      // console.log("response: ", res.data);
+      cardContainer.append(createCard(res.data));
 
-axios
-  .get("https://api.github.com/users/KevinTou")
-  .then(res => {
-    // console.log("response: ", res.data);
-    cardContainer.append(createCard(res.data));
-  })
-  .catch(err => {
-    console.log("Error has occurred: ", err);
-  });
+      return res.data;
+    })
+    .then(user => {
+      // user ---> res.data: {...}
+      getFollowers(user);
+    })
+    .catch(err => {
+      console.log("Error has occurred: ", err);
+    });
+})("KevinTou");
 
 /* Step 2: Inspect and study the data coming back, this is YOUR 
    github info! You will need to understand the structure of this 
@@ -35,28 +42,55 @@ axios
           user, and adding that card to the DOM.
 */
 
-axios
-  .get(`https://api.github.com/users/KevinTou/followers`)
-  .then(res => {
-    // console.log(res.data);
-    const followersArray = [];
+// Takes a string and returns
+function getFollowers(user) {
+  // user ---> {...}
 
-    res.data.map(user => {
-      followersArray.push(user.login);
-    });
-
-    return followersArray;
-  })
-  .then(followers => {
-    followers.forEach(follower => {
-      axios.get(`https://api.github.com/users/${follower}`).then(res => {
-        cardContainer.append(createCard(res.data));
+  axios
+    .get(user.followers_url)
+    .then(res => {
+      let followersArray = [];
+      // console.log("res.data: ", res.data);
+      followersArray = res.data.map(user => {
+        return user.login;
       });
+      return followersArray;
+    })
+    .then(followers => {
+      followers.forEach(follower => {
+        axios.get(`https://api.github.com/users/${follower}`).then(res => {
+          cardContainer.append(createCard(res.data));
+        });
+      });
+    })
+    .catch(err => {
+      console.log("Error has occurred: ", err);
     });
-  })
-  .catch(err => {
-    console.log("Error has occurred: ", err);
-  });
+}
+
+// Using a request to grab your followers and create cards for them
+// axios
+//   .get(`https://api.github.com/users/KevinTou/followers`)
+//   .then(res => {
+//     // console.log(res.data);
+//     const followersArray = [];
+
+//     res.data.map(user => {
+//       followersArray.push(user.login);
+//     });
+
+//     return followersArray;
+//   })
+//   .then(followers => {
+//     followers.forEach(follower => {
+//       axios.get(`https://api.github.com/users/${follower}`).then(res => {
+//         cardContainer.append(createCard(res.data));
+//       });
+//     });
+//   })
+//   .catch(err => {
+//     console.log("Error has occurred: ", err);
+//   });
 
 // Hardcoded array
 // const followersArray = [
