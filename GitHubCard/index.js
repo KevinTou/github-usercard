@@ -57,10 +57,13 @@ function getFollowers(user) {
       return followersArray;
     })
     .then(followers => {
-      followers.forEach(follower => {
-        axios.get(`https://api.github.com/users/${follower}`).then(res => {
-          cardContainer.append(createCard(res.data));
-        });
+      return Promise.all(
+        followers.map(follower =>
+          axios.get(`https://api.github.com/users/${follower}`)
+        )
+      ).then(userResults => {
+        // console.log("Array of Promises: ", userResults);
+        userResults.map(user => cardContainer.append(createCard(user.data)));
       });
     })
     .catch(err => {
